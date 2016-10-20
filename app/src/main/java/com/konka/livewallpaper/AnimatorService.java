@@ -29,7 +29,6 @@ public class AnimatorService extends Service {
         }
         else {
             countDownTask.start();
-            //stopSelf(startId);
         }
         return START_STICKY;
     }
@@ -51,12 +50,4 @@ public class AnimatorService extends Service {
             Log.i(TAG, "the remain time is " + millisUntilFinished / 1000);
         }
     }
-
-    private class AnimatorTask implements Runnable {
-        @Override
-        public void run() {
-
-        }
-    }
-
 }

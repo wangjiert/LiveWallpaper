@@ -13,9 +13,18 @@ public class StickerDemoReceiver extends BroadcastReceiver {
     public StickerDemoReceiver() {
         Log.i(TAG, "create broadcastreceive");
     }
+    @Override
+    public void finalize(){
+        Log.i(TAG, "delete receive");
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if(intent.getAction().equals("com.konka.STICKERDEMOBROADCAST")) {
             Bundle bundle = intent.getExtras();
             boolean isEnable = bundle.getBoolean("ENABLE");
