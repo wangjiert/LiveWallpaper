@@ -20,21 +20,18 @@ public class StickerDemoReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
         if(intent.getAction().equals("com.konka.STICKERDEMOBROADCAST")) {
             Bundle bundle = intent.getExtras();
             boolean isEnable = bundle.getBoolean("ENABLE");
             Intent intent1 = new Intent(context,AnimatorService.class);
-            intent1.putExtra("ENABLE", isEnable);
+            if(!isEnable) {
+                intent1.putExtra("ENABLE", isEnable);
+            }
             context.startService(intent1);
         }
         else if(getStickerDemoStatus(context)) {
             Intent intent1 = new Intent(context,AnimatorService.class);
-            intent1.putExtra("ENABLE", true);
             context.startService(intent1);
         }
     }
