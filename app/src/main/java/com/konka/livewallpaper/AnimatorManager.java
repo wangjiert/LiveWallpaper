@@ -6,6 +6,8 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.Application;
+import android.app.Service;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -90,14 +92,12 @@ public class AnimatorManager {
     VideoView videoView;
 
     private AnimatorSet alphaScaleSet = new AnimatorSet();
-    public AnimatorManager(Activity context) {
+    public AnimatorManager(Context context, FrameLayout frameLayout) {
         DisplayMetrics dm = new DisplayMetrics();
-
-        context.getWindowManager().getDefaultDisplay().getMetrics(dm);
-
+        dm = context.getResources().getDisplayMetrics();
         animationY = dm.heightPixels - animationY;
 
-        addCircle(context);
+        addCircle(context, frameLayout);
 
         task = new Runnable() {
 
@@ -432,7 +432,7 @@ public class AnimatorManager {
 
     }
 
-    private void addCircle(Activity context) {
+    private void addCircle(Context context, FrameLayout mainLayout) {
 
         drawables = new Drawable[drawableIds.length];
 
@@ -443,15 +443,10 @@ public class AnimatorManager {
 
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        FrameLayout mainLayout = new FrameLayout(context);
-
         left_bg = new ImageView(context);
-
         left_bg.setLayoutParams(layoutParams);
-
         left_bg.setImageResource(R.drawable.left_bg);
-
-        left_bg.setAlpha(1f);
+        left_bg.setAlpha(0f);
 
         mainLayout.addView(left_bg);
 
