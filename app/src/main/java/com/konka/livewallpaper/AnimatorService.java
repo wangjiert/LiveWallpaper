@@ -61,7 +61,7 @@ public class AnimatorService extends Service {
             WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
             layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
-            layoutParams.format = PixelFormat.TRANSLUCENT;
+            //layoutParams.format = PixelFormat.TRANSLUCENT;
             layoutParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_FULLSCREEN;
             frameLayout = new FrameLayout(AnimatorService.this);
             animatorManager = new AnimatorManager(AnimatorService.this,frameLayout);
@@ -72,7 +72,7 @@ public class AnimatorService extends Service {
 
         @Override
         public void onTick(long millisUntilFinished) {
-            Log.i(TAG, "the remain time is " + millisUntilFinished / 1000);
+            Log.i(TAG, "the animator will start after " + millisUntilFinished / 1000 + "s");
         }
     }
 }

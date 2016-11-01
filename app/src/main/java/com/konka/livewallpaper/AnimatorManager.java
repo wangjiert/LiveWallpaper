@@ -81,10 +81,6 @@ public class AnimatorManager {
 
     private ObjectAnimator alphaOutAnimator;
 
-    //private ObjectAnimator videoInAlpha;
-
-    //private ObjectAnimator videoOutAlpha;
-
     private ValueAnimator scaleAnim;
 
     private ValueAnimator valueAnimator;
@@ -96,109 +92,48 @@ public class AnimatorManager {
         DisplayMetrics dm = new DisplayMetrics();
         dm = context.getResources().getDisplayMetrics();
         animationY = dm.heightPixels - animationY;
-
         addCircle(context, frameLayout);
-
         task = new Runnable() {
-
             @Override
             public void run() {
-
+                Log.i("doing","doingdoing");
                 for( int i = toEnd; i < forward; i++) {
-
                     circleView[i].changeRadian();
-
                     circleView[i].setCircleCenter( (float) (animationX - radius * Math.sin(circleView[i].getCurrentRadian())),
                             (float) (animationY + radius * Math.cos(circleView[i].getCurrentRadian())));
-
                 }
-
                 if(addForward()) {
-
                     handler.postDelayed( task, timeInterval);
-
                 }
-
             }
-
         };
-
         state="forward";
-
-        //videoInAlpha = ObjectAnimator.ofFloat(videoView, "alpha", 0f, 1f);
-
-        //videoInAlpha.setDuration(videoAnimationTime);
-
-        //videoInAlpha.addListener(new AnimatorListenerAdapter() {
-        //    @Override
-        //    public void onAnimationEnd(Animator animation) {
-
-        //        super.onAnimationEnd(animation);
-
-        //       videoView.start();
-
-        //    }
-        //});
-
-        //videoOutAlpha = ObjectAnimator.ofFloat(videoView, "alpha", 1f, 0f);
-
-        //videoOutAlpha.setDuration(videoAnimationTime);
-
         leftAnimIn = ObjectAnimator.ofFloat( left_bg, "alpha", 0f, 1f);
-
         leftAnimIn.setDuration(leftBgDuration);
-
         leftAnimIn.addListener(new AnimatorListenerAdapter() {
 
             @Override
             public void onAnimationEnd(Animator animation) {
-
                 super.onAnimationEnd(animation);
-
                 left_bg.setAlpha(1f);
-
                 handler.postDelayed(task, timeInterval);
-
             }
 
         });
-
         leftAnimIn.start();
-
         alphaInAnimator = ObjectAnimator.ofFloat( imageView, "alpha", 0f, 1f);
-
         alphaInAnimator.setDuration(circleAlphaDuration);
-
         alphaOutAnimator = ObjectAnimator.ofFloat( imageView, "alpha", 1f, 0f);
-
         alphaOutAnimator.setDuration(circleAlphaDuration);
-
         scaleAnim = ValueAnimator.ofFloat( 1.0f, circleScale);
-
-        /*scaleAnim.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-
-                super.onAnimationStart(animation);
-
-                videoView.start();
-
-            }
-        });*/
-
         scaleAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
 
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
-
                 float scale=(float) valueAnimator.getAnimatedValue();
-
                 Matrix matrix = new Matrix(AnimatorManager.this.matrix);
-
                 matrix.postScale( scale, scale, imageWidth / 2, imageWidth / 2);
-
                 imageView.setImageMatrix(matrix);
-
             }
 
         });
@@ -432,90 +367,50 @@ public class AnimatorManager {
 
     }
 
+    @Override
+    public void finalize() {
+        Log.i("doing", "delete AnimatorManger");
+    }
+
     private void addCircle(Context context, FrameLayout mainLayout) {
-
         drawables = new Drawable[drawableIds.length];
-
         for (int i = 0; i < drawableIds.length; i++) {
-
             drawables[i] = context.getResources().getDrawable(drawableIds[i], null);
         }
-
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
         left_bg = new ImageView(context);
         left_bg.setLayoutParams(layoutParams);
         left_bg.setImageResource(R.drawable.left_bg);
         left_bg.setAlpha(0f);
-
         mainLayout.addView(left_bg);
-
         for (int i = 3; i >= 0; i--) {
-
             circleView[i] = new CircleView(context, drawables[i], endRidians[i], i);
-
             mainLayout.addView(circleView[i]);
-
             circleView[i].setCircleCenter((float) (animationX - radius * Math.sin(circleView[i].getCurrentRadian())),
                     (float) (animationY + radius * Math.cos(circleView[i].getCurrentRadian())));
-
         }
-
         imageView = new ImageView(context);
-
         imageView.setLayoutParams(layoutParams);
-
         imageView.setImageResource(R.drawable.ball_circle);
-
         imageView.setX((float) (animationX - radius * Math.sin(endRidians[0])) - imageWidth / 2);
-
         imageView.setY((float) (animationY + radius * Math.cos(endRidians[0])) - imageWidth / 2);
-
         imageView.setScaleType(ImageView.ScaleType.MATRIX);
-
         matrix = imageView.getImageMatrix();
-
         imageView.setAlpha(0f);
-
         mainLayout.addView(imageView);
-
         videoView = new VideoView(context);
-
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-
             @Override
             public void onCompletion(MediaPlayer mp) {
-
-                //videoOutAlpha.start();
-
                 videoView.setVisibility(View.INVISIBLE);
-
                 handler.postDelayed(task, timeInterval);
-
             }
-
         });
-
         videoView.setVideoURI(Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.movie));
-
         videoView.setLayoutParams(new FrameLayout.LayoutParams(470, 310));
-
-        //videoView.setAlpha(0f);
-
         videoView.setVisibility(View.INVISIBLE);
-
-        //videoView.setBackgroundColor(Color.BLACK);
-
         videoView.setX(50);
-
         videoView.setY(100);
-
-        //videoView.start();
-
-        //videoView.requestFocus();
-
         mainLayout.addView(videoView);
-
-
     }
 }

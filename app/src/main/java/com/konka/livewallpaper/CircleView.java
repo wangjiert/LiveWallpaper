@@ -192,7 +192,7 @@ public class CircleView extends View {
 
     public void changeRadian(){
 
-        switch (AnimatorManager.state){
+        switch(AnimatorManager.state) {
 
             case "forward":
 
