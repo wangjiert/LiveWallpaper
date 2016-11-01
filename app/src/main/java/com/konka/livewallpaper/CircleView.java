@@ -43,214 +43,128 @@ public class CircleView extends View {
 
     private RectF rectF;
 
-    private String state = "normal";
+    private String state;
 
     private Drawable mDrawable;
 
-    public static boolean flag = true;
+    public boolean flag = true;
 
     public CircleView( Context context, Drawable drawable, double endRadian, int index) {
-
         super(context);
-
         this.mDrawable = drawable;
-
         this.endRadian = endRadian;
-
         this.index = index;
-
+        state = "stop";
         width = View.MeasureSpec.makeMeasureSpec( 0, MeasureSpec.UNSPECIFIED);
-
         height = View.MeasureSpec.makeMeasureSpec( 0, MeasureSpec.UNSPECIFIED);
-
         measure( width, height);
-
         width = getMeasuredWidth();
-
         height = getMeasuredHeight();
-
         radius = ( width - 2 * circleSpaceWidth - 2 * circleEdgeWidth) / 2.0f;
-
         distance = radius * sqrt2;
-
         paint.setAntiAlias(true);
-
         paint.setStyle(Paint.Style.FILL);
-
         int left = circleSpaceWidth + circleEdgeWidth;
-
         float top = left + 2 * radius;
-
         rectF = new RectF( left, left, top, top);
-
     }
 
     public void initAcceleratedValue() {
-
         this.acceleratedValue = 0;
-
     }
 
-    public void setDegree(int degree){
-
+    public void setDegree(int degree) {
         this.degree = degree;
-
         invalidate();
-
     }
 
     public double getStartRadian() {
-
         return startRadian;
-
     }
 
     public double getEndRadian() {
-
         return endRadian;
-
     }
 
     public double getCurrentRadian() {
-
         return currentRadian;
-
     }
 
     public void setState(String state) {
-
         this.state = state;
-
     }
 
     public String getState() {
-
         return state;
-
     }
 
     public void setDrawable(Drawable drawable) {
-
         mDrawable = drawable;
-
         invalidate();
-
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-
         super.onDraw(canvas);
-
         if (mDrawable != null) {
-
             mDrawable.setBounds( 0, 0, width, height);
-
             mDrawable.draw(canvas);
-
         }
-
-        if(AnimatorManager.state.equals("end")){
-
+        if(state.equals("end")) {
             LinearGradient lg;
-
             float x = (float) (width / 2 - radius * Math.cos(degree * Math.PI / 360) / sqrt2);
-
-            if(flag){
-
+            if(flag) {
                 lg = new LinearGradient( x - distance, x - distance, x, x, startColor, endColor, Shader.TileMode.MIRROR);
-
-                path.arcTo( rectF, 225 - degree / 2, degree);
-
+                path.arcTo( rectF, 225 - degree / 2, degree - 0.1f);
             }
-
-            else{
-
+            else {
                 lg =new LinearGradient( x, x, x + distance, x + distance, startColor, endColor, Shader.TileMode.MIRROR);
-
-                path.arcTo( rectF, 225 + degree / 2, 359 - degree);
-
+                path.arcTo( rectF, 225 + degree / 2, 359.9f - degree);
             }
-
             paint.setShader(lg);
-
             canvas.drawPath( path, paint);
-
             path.reset();
-
         }
-
     }
 
-    public void setCircleCenter(float x,float y){
-
+    public void setCircleCenter(float x,float y) {
         setX( x - width / 2);
-
         setY( y - height / 2);
-
     }
 
-    public void changeRadian(){
-
-        switch(AnimatorManager.state) {
-
+    public void changeRadian() {
+        switch(state) {
             case "forward":
-
-                if(state.equals("normal")){
-
-                    currentRadian += startSpeed + acceleratedValue;
-
-                    acceleratedValue += forwardAcceleratedRatio;
-
-                    if(index == 0 && currentRadian > endRadian){
-
-                        currentRadian = endRadian;
-                    }
-
+                currentRadian += startSpeed + acceleratedValue;
+                acceleratedValue += forwardAcceleratedRatio;
+                if(index == 0 && currentRadian >= endRadian) {
+                    currentRadian = endRadian;
+                    state = "end";
                 }
-
-                else{
-
-                    currentRadian -= bounceSpeed - acceleratedValue;
-
-                    if(bounceSpeed - acceleratedValue > 0.008){
-
-                        acceleratedValue += bounceAcceleratedRatio;
-
-                    }
-
-                    if(currentRadian < endRadian){
-
-                        currentRadian = endRadian;
-
-                    }
-
-                }
-
                 break;
-
+            case "bounce":
+                currentRadian -= bounceSpeed - acceleratedValue;
+                if(bounceSpeed - acceleratedValue > 0.008) {
+                    acceleratedValue += bounceAcceleratedRatio;
+                }
+                if(currentRadian <= endRadian) {
+                    currentRadian = endRadian;
+                    state = "end";
+                }
+                break;
             case "backward":
-
                 currentRadian -= returnSpeed + acceleratedValue;
-
                 acceleratedValue += backwardAcceleratedRatio;
-
-                if(currentRadian < startRadian){
-
+                if(currentRadian <= startRadian) {
                     currentRadian = startRadian;
-
+                    state = "stop";
                 }
-
                 break;
-
         }
-
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
-
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         setMeasuredDimension(mDrawable.getIntrinsicWidth(), mDrawable.getIntrinsicHeight());
-
     }
 }

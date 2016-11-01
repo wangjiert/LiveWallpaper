@@ -29,12 +29,12 @@ import android.widget.VideoView;
 public class AnimatorManager {
     private boolean hasPerformed;
 
-    private int animationX = 610;                           //旋转点的X坐标
-    private int animationY = 315;                           //旋转点的Y坐标
-    private int radius = 518;                               //动画半径
+    private static final int animationX = 610;              //旋转点的X坐标
+    private static int animationY = 315;                    //旋转点的Y坐标
+    private static final int radius = 518;                  //动画半径
     private int imageWidth = 180;                           //圆环图片的宽度
-    private int leftBgDuration = 500;                      //左边图片显示的动画时间
-    private int circleAlphaDuration = 100;                   //圆环透明动画持续时间
+    private int leftBgDuration = 500;                       //左边图片显示的动画时间
+    private int circleAlphaDuration = 100;                  //圆环透明动画持续时间
     private int circleScaleDuration = 200;                  //圆环放大持续时间
     private int highLightStartInterval = 300;               //高亮动画开始的延迟时间
     private int ballHighLightDuration = 200;                //圆球高亮动画持续时间
@@ -42,7 +42,6 @@ public class AnimatorManager {
     private int startTimeInterval = 250;                    //小球在下面停留的时间
     private int endTimeInterval = 5000;                     //小球再上面停留的时间
     private int standardTimeInterval = 10;                  //动画执行的时间间隔
-    //private int videoAnimationTime = 100;                   //VideoView动画时长
     private int timeInterval = standardTimeInterval;
     private int index = 1;
     private int toEnd = 0;
@@ -51,6 +50,8 @@ public class AnimatorManager {
     private int[] drawableIds = { R.drawable.ball_4k, R.drawable.ball_mulitscreen, R.drawable.ball_miracast, R.drawable.ball_cpu,
             R.drawable.ball_capture,R.drawable.ball_homeshare,R.drawable.ball_nullmouse,
             R.drawable.ball_shop,R.drawable.ball_sss,R.drawable.ball_updateonline}; //图片的id
+    private int[] videoIds = {R.raw.ball_4k,R.raw.ball_mulitscreen,R.raw.ball_miracast,R.raw.ball_cpu,R.raw.ball_capture,
+            R.raw.ball_homeshare,R.raw.ball_nullmouse,R.raw.ball_shop,R.raw.ball_sss,R.raw.ball_updateonline};//视频的id
 
     private float circleScale = 1.05f; //圆环放大倍数
 
@@ -63,7 +64,7 @@ public class AnimatorManager {
 
     private ImageView left_bg;
 
-    public static String state;
+    private String state;
 
     private CircleView[] circleView = new CircleView[4];
 
@@ -116,6 +117,7 @@ public class AnimatorManager {
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 left_bg.setAlpha(1f);
+                circleView[0].setState("forward");
                 handler.postDelayed(task, timeInterval);
             }
 
@@ -201,94 +203,46 @@ public class AnimatorManager {
     }
 
     private boolean addForward() {
-
         switch (state){
-
             case "forward":
-
                 if(forward < 4 && (circleView[forward - 1].getCurrentRadian() -
-                        circleView[forward].getCurrentRadian()) > moveInterval) {
-
+                        circleView[forward].getCurrentRadian()) >= moveInterval) {
+                    circleView[forward].setState("forward");
                     forward++;
-
                 }
-
                 else if(forward == 4 && toEnd < 4) {
-
                     if(toEnd == 0) {
-
-                        if(circleView[toEnd].getCurrentRadian() >= circleView[toEnd].getEndRadian()) {
-
-                            //videoInAlpha.start();
-
+                        if(circleView[toEnd].getState().equals("end")) {
                             circleView[toEnd].initAcceleratedValue();
-
                             toEnd++;
-
                         }
-
                     }
-
                     else {
-
                         if(index < 4 && (circleView[index - 1].getCurrentRadian() - circleView[index].getCurrentRadian() < impactInterval)) {
-
                             if(index == 1) {
-
-                                //imageView.setVisibility(View.VISIBLE);
-
-                                //scaleAnim.start();
-
                                 videoView.setVisibility(View.VISIBLE);
-
                                 videoView.start();
-
                                 alphaScaleSet.start();
-
                             }
-
-                            circleView[index].setState("accelerate");
-
+                            circleView[index].setState("bounce");
                             circleView[index].initAcceleratedValue();
-
                             index++;
-
                         }
-
-                        if(circleView[toEnd].getState().equals("accelerate") && (circleView[toEnd].getCurrentRadian() <= circleView[toEnd].getEndRadian())) {
-
-                            circleView[toEnd].setState("normal");
-
+                        if(circleView[toEnd].getState().equals("end")) {
                             circleView[toEnd].initAcceleratedValue();
-
                             toEnd++;
-
                         }
-
                     }
-
                 }
-
                 else if(toEnd == 4) {
-
                     index = 1;
-
                     state = "end";
-
-                    //timeInterval = endTimeInterval;
-
                     hasPerformed = false;
-
                     valueAnimator.setStartDelay(highLightStartInterval);
-
                     valueAnimator.start();
-
                     return false;
-
                 }
-
                 break;
-
             case "end":
 
                 toEnd = 3;
@@ -350,21 +304,12 @@ public class AnimatorManager {
     }
 
     private void changeDrawable() {
-
         for( int i = 0; i < 4; i++) {
-
             circleView[i].setDrawable(drawables[ (drawableIndex + i) % drawableIds.length]);
-
         }
-
-        drawableIndex += 1;
-
-        if(drawableIndex == drawableIds.length) {
-
+        if(++drawableIndex == drawableIds.length) {
             drawableIndex = 0;
-
         }
-
     }
 
     @Override
