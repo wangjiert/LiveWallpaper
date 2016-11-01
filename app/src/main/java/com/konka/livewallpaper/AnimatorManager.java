@@ -40,13 +40,13 @@ public class AnimatorManager {
     private int ballHighLightDuration = 200;                //圆球高亮动画持续时间
     private int ballHightLightInterval = 2000;              //两次高亮动画的时间间隔
     private int startTimeInterval = 250;                    //小球在下面停留的时间
-    private int endTimeInterval = 5000;                     //小球再上面停留的时间
     private int standardTimeInterval = 10;                  //动画执行的时间间隔
     private int timeInterval = standardTimeInterval;
     private int index = 1;
     private int toEnd = 0;
     private int forward = 1;
     private int drawableIndex = 1;
+    private int videoIndex = 0;
     private int[] drawableIds = { R.drawable.ball_4k, R.drawable.ball_mulitscreen, R.drawable.ball_miracast, R.drawable.ball_cpu,
             R.drawable.ball_capture,R.drawable.ball_homeshare,R.drawable.ball_nullmouse,
             R.drawable.ball_shop,R.drawable.ball_sss,R.drawable.ball_updateonline}; //图片的id
@@ -86,10 +86,13 @@ public class AnimatorManager {
 
     private ValueAnimator valueAnimator;
 
-    VideoView videoView;
+    private VideoView videoView;
+
+    private Context context;
 
     private AnimatorSet alphaScaleSet = new AnimatorSet();
     public AnimatorManager(Context context, FrameLayout frameLayout) {
+        this.context = context;
         DisplayMetrics dm = new DisplayMetrics();
         dm = context.getResources().getDisplayMetrics();
         animationY = dm.heightPixels - animationY;
@@ -244,63 +247,36 @@ public class AnimatorManager {
                 }
                 break;
             case "end":
-
                 toEnd = 3;
-
                 timeInterval = standardTimeInterval;
-
                 state = "backward";
-
+                circleView[3].setState("backward");
                 alphaOutAnimator.start();
-
                 break;
-
             case "backward":
-
                 if(toEnd > 0 && (circleView[toEnd - 1].getCurrentRadian() - circleView[toEnd].getCurrentRadian()) > downInterval) {
-
+                    circleView[toEnd - 1].setState("backward");
                     toEnd--;
-
                 }
-
                 else if(toEnd == 0 && forward > 0) {
-
-                    if(circleView[forward - 1].getCurrentRadian() <= circleView[forward - 1].getStartRadian()) {
-
+                    if(circleView[forward - 1].getState().equals("stop")) {
                         circleView[forward - 1].initAcceleratedValue();
-
                         forward--;
-
                     }
-
                 }
-
                 else if(forward == 0) {
-
                     state = "stop";
-
                     timeInterval = startTimeInterval;
-
                 }
-
                 break;
-
             case "stop":
-
                 changeDrawable();
-
                 forward = 1;
-
                 timeInterval = standardTimeInterval;
-
                 state = "forward";
-
                 break;
-
         }
-
         return true;
-
     }
 
     private void changeDrawable() {
@@ -348,10 +324,11 @@ public class AnimatorManager {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 videoView.setVisibility(View.INVISIBLE);
+                videoView.setVideoURI(Uri.parse("android.resource://" + AnimatorManager.this.context.getPackageName() + "/" + videoIds[++videoIndex]));
                 handler.postDelayed(task, timeInterval);
             }
         });
-        videoView.setVideoURI(Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.movie));
+        videoView.setVideoURI(Uri.parse("android.resource://" + context.getPackageName() + "/" + videoIds[0]));
         videoView.setLayoutParams(new FrameLayout.LayoutParams(470, 310));
         videoView.setVisibility(View.INVISIBLE);
         videoView.setX(50);
