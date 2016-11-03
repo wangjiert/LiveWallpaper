@@ -37,6 +37,7 @@ public class AnimatorService extends Service {
         if(frameLayout != null) {
             WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
             windowManager.removeViewImmediate(frameLayout);
+            animatorManager.clean();
             frameLayout = null;
             animatorManager = null;
         }

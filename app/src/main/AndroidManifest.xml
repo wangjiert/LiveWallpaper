@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.konka.livewallpaper">
-
+    package="com.konka.livewallpaper"
+    android:sharedUserId="android.uid.system">
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="com.mstar.android.permissionn.ACCESS_TV_DATA" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />

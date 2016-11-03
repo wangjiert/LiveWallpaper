@@ -15,6 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.session.MediaController;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -23,6 +24,17 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.VideoView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.gifdecoder.GifDecoder;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.GlideDrawableImageViewTarget;
+import com.bumptech.glide.request.target.Target;
+
 /**
  * Created by wangjie on 16-10-27.
  */
@@ -46,12 +58,10 @@ public class AnimatorManager {
     private int toEnd = 0;
     private int forward = 1;
     private int drawableIndex = 1;
-    private int videoIndex = 0;
+    private int jifIndex = 0;
     private int[] drawableIds = { R.drawable.ball_4k, R.drawable.ball_mulitscreen, R.drawable.ball_miracast, R.drawable.ball_cpu,
             R.drawable.ball_capture,R.drawable.ball_homeshare,R.drawable.ball_nullmouse,
             R.drawable.ball_shop,R.drawable.ball_sss,R.drawable.ball_updateonline}; //图片的id
-    private int[] videoIds = {R.raw.ball_4k,R.raw.ball_mulitscreen,R.raw.ball_miracast,R.raw.ball_cpu,R.raw.ball_capture,
-            R.raw.ball_homeshare,R.raw.ball_nullmouse,R.raw.ball_shop,R.raw.ball_sss,R.raw.ball_updateonline};//视频的id
 
     private float circleScale = 1.05f; //圆环放大倍数
 
@@ -86,20 +96,27 @@ public class AnimatorManager {
 
     private ValueAnimator valueAnimator;
 
-    private VideoView videoView;
+    private ImageView gifView;
+
+    private RequestManager requestManager;
+
+    private RequestListener<Integer, GlideDrawable> requestListener;
 
     private Context context;
 
+    private Boolean isEnd = false;
     private AnimatorSet alphaScaleSet = new AnimatorSet();
     public AnimatorManager(Context context, FrameLayout frameLayout) {
         this.context = context;
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         animationY = dm.heightPixels - animationY;
-        Log.i("test", "screen height"+dm.heightPixels);
         addCircle(context, frameLayout);
         task = new Runnable() {
             @Override
             public void run() {
+                if(isEnd) {
+                    return;
+                }
                 for( int i = toEnd; i < forward; i++) {
                     circleView[i].changeRadian();
                     circleView[i].setCircleCenter( (float) (animationX - radius * Math.sin(circleView[i].getCurrentRadian())),
@@ -222,9 +239,8 @@ public class AnimatorManager {
                     else {
                         if(index < 4 && (circleView[index - 1].getCurrentRadian() - circleView[index].getCurrentRadian() < impactInterval)) {
                             if(index == 1) {
-                                videoView.setAlpha(1);
-                                //videoView.setVisibility(View.VISIBLE);
-                                videoView.start();
+                                gifView.setAlpha(1f);
+                                requestManager.load(R.drawable.movie).diskCacheStrategy(DiskCacheStrategy.SOURCE).listener(requestListener).into(new GlideDrawableImageViewTarget(gifView, 1));
                                 alphaScaleSet.start();
                             }
                             circleView[index].setState("bounce");
@@ -243,11 +259,11 @@ public class AnimatorManager {
                     hasPerformed = false;
                     valueAnimator.setStartDelay(highLightStartInterval);
                     valueAnimator.start();
-                    Log.i("test", "cpu go the point where addForward return false");
                     return false;
                 }
                 break;
             case "end":
+                Glide.clear(gifView);
                 toEnd = 3;
                 timeInterval = standardTimeInterval;
                 state = "backward";
@@ -291,7 +307,15 @@ public class AnimatorManager {
     }
 
     public void clean() {
-
+        isEnd = true;
+        leftAnimIn.cancel();
+        alphaScaleSet.cancel();
+        valueAnimator.cancel();
+        alphaOutAnimator.cancel();
+        circleView = null;
+        drawables = null;
+        requestManager = null;
+        Glide.clear(gifView);
     }
 
     @Override
@@ -325,50 +349,35 @@ public class AnimatorManager {
         matrix = imageView.getImageMatrix();
         imageView.setAlpha(0f);
         mainLayout.addView(imageView);
-        videoView = new VideoView(context);
-        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        gifView = new ImageView(context);
+        requestManager = Glide.with(context);
+        requestListener = new RequestListener<Integer, GlideDrawable>() {
+
             @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                //videoView.setVisibility(View.VISIBLE);
-                Log.i("tag", "video prepared");
+            public boolean onException(Exception arg0, Integer arg1,
+                                       Target<GlideDrawable> arg2, boolean arg3) {
+                return false;
             }
-        });
-        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+
             @Override
-            public void onCompletion(MediaPlayer mp) {
-                //videoView.setVisibility(View.INVISIBLE);
-                videoView.setAlpha(0);
-                Log.i("tag", ""+videoIndex);
-                videoView.stopPlayback();
-                videoView.setVideoURI(Uri.parse("android.resource://" + AnimatorManager.this.context.getPackageName() + "/" + videoIds[++videoIndex]));
-                if(videoIndex == videoIds.length - 1) {
-                    videoIndex = -1;
+            public boolean onResourceReady(GlideDrawable resource,
+                                           Integer model, Target<GlideDrawable> target,
+                                           boolean isFromMemoryCache, boolean isFirstResource) {
+                int duration = 0;
+                // 计算动画时长
+                GifDrawable drawable = (GifDrawable) resource;
+                GifDecoder decoder = drawable.getDecoder();
+                for (int i = 0; i < drawable.getFrameCount(); i++) {
+                    duration += decoder.getDelay(i);
                 }
-                handler.postDelayed(task, timeInterval);
+                handler.postDelayed(task, duration + 1000);
+                return false;
             }
-        });
-        /*final VideoView test = new VideoView(context);
-        Log.i("test", "before seturi");
-        test.setVideoURI(Uri.parse("android.resource://" + context.getPackageName() + "/" + videoIds[0]));
-        test.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                test.start();
-            }
-        });
-        test.setX(500);
-        test.setY(500);
-        test.setLayoutParams(new FrameLayout.LayoutParams(470, 310));
-        mainLayout.addView(test);
-        Log.i("test", "after seturi\r\nbefore start");
-        test.start();*/
-        Log.i("test", "after start");
-        videoView.setVideoURI(Uri.parse("android.resource://" + context.getPackageName() + "/" + videoIds[0]));
-        videoView.setLayoutParams(new FrameLayout.LayoutParams(470, 310));
-        //videoView.setVisibility(View.INVISIBLE);
-        videoView.setAlpha(0);
-        videoView.setX(50);
-        videoView.setY(100);
-        //mainLayout.addView(videoView);
+        };
+        gifView.setLayoutParams(new FrameLayout.LayoutParams(470, 310));
+        gifView.setAlpha(0f);
+        gifView.setX(50);
+        gifView.setY(100);
+        mainLayout.addView(gifView);
     }
 }

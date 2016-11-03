@@ -1,2 +1,13 @@
 1.加载图片时不要一次性加载全部
 
+2.小球所有的状态为 stop forward bounce end backward stop
+
+3.图片ball_null对应的视频有问题
+
+4.删除framelayout之后，所有的组件是否会被销毁
+
+5.删除framelayout之后，动画为什么会停
+
+6.index = 1, toEnd = 0, forward = 1, 
+
+  from toEnd to forward
