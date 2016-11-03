@@ -8,6 +8,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.View;
 /**
  * Created by wangjie on 16-10-27.
@@ -161,6 +162,11 @@ public class CircleView extends View {
                 }
                 break;
         }
+    }
+
+    @Override
+    public void finalize() {
+        Log.i("test", "delete class CircleView");
     }
 
     @Override

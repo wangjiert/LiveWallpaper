@@ -19,7 +19,7 @@ import java.util.HashSet;
 
 public class AnimatorService extends Service {
     public static final String TAG = "TEST";
-    CountDownTask countDownTask = new CountDownTask(10000,1000);
+    CountDownTask countDownTask = new CountDownTask(3000,1000);
     FrameLayout frameLayout = null;
     AnimatorManager animatorManager;
     public AnimatorService() {
@@ -60,14 +60,13 @@ public class AnimatorService extends Service {
         public void onFinish() {
             WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
             WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
-            layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
-            //layoutParams.format = PixelFormat.TRANSLUCENT;
+            layoutParams.type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+            layoutParams.format = PixelFormat.TRANSLUCENT;
             layoutParams.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_FULLSCREEN;
             frameLayout = new FrameLayout(AnimatorService.this);
             animatorManager = new AnimatorManager(AnimatorService.this,frameLayout);
             windowManager.addView(frameLayout,layoutParams);
             Log.i(TAG, "fnish my task");
-            //stopSelf();
         }
 
         @Override

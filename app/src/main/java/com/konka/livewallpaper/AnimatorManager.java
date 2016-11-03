@@ -30,7 +30,7 @@ public class AnimatorManager {
     private boolean hasPerformed;
 
     private static final int animationX = 610;              //旋转点的X坐标
-    private static int animationY = 315;                    //旋转点的Y坐标
+    private int animationY = 315;                           //旋转点的Y坐标
     private static final int radius = 518;                  //动画半径
     private int imageWidth = 180;                           //圆环图片的宽度
     private int leftBgDuration = 500;                       //左边图片显示的动画时间
@@ -93,14 +93,13 @@ public class AnimatorManager {
     private AnimatorSet alphaScaleSet = new AnimatorSet();
     public AnimatorManager(Context context, FrameLayout frameLayout) {
         this.context = context;
-        DisplayMetrics dm = new DisplayMetrics();
-        dm = context.getResources().getDisplayMetrics();
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
         animationY = dm.heightPixels - animationY;
+        Log.i("test", "screen height"+dm.heightPixels);
         addCircle(context, frameLayout);
         task = new Runnable() {
             @Override
             public void run() {
-                Log.i("doing","doingdoing");
                 for( int i = toEnd; i < forward; i++) {
                     circleView[i].changeRadian();
                     circleView[i].setCircleCenter( (float) (animationX - radius * Math.sin(circleView[i].getCurrentRadian())),
@@ -223,7 +222,8 @@ public class AnimatorManager {
                     else {
                         if(index < 4 && (circleView[index - 1].getCurrentRadian() - circleView[index].getCurrentRadian() < impactInterval)) {
                             if(index == 1) {
-                                videoView.setVisibility(View.VISIBLE);
+                                videoView.setAlpha(1);
+                                //videoView.setVisibility(View.VISIBLE);
                                 videoView.start();
                                 alphaScaleSet.start();
                             }
@@ -243,6 +243,7 @@ public class AnimatorManager {
                     hasPerformed = false;
                     valueAnimator.setStartDelay(highLightStartInterval);
                     valueAnimator.start();
+                    Log.i("test", "cpu go the point where addForward return false");
                     return false;
                 }
                 break;
@@ -274,6 +275,7 @@ public class AnimatorManager {
                 forward = 1;
                 timeInterval = standardTimeInterval;
                 state = "forward";
+                circleView[0].setState("forward");
                 break;
         }
         return true;
@@ -286,6 +288,10 @@ public class AnimatorManager {
         if(++drawableIndex == drawableIds.length) {
             drawableIndex = 0;
         }
+    }
+
+    public void clean() {
+
     }
 
     @Override
@@ -320,19 +326,49 @@ public class AnimatorManager {
         imageView.setAlpha(0f);
         mainLayout.addView(imageView);
         videoView = new VideoView(context);
+        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                //videoView.setVisibility(View.VISIBLE);
+                Log.i("tag", "video prepared");
+            }
+        });
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                videoView.setVisibility(View.INVISIBLE);
+                //videoView.setVisibility(View.INVISIBLE);
+                videoView.setAlpha(0);
+                Log.i("tag", ""+videoIndex);
+                videoView.stopPlayback();
                 videoView.setVideoURI(Uri.parse("android.resource://" + AnimatorManager.this.context.getPackageName() + "/" + videoIds[++videoIndex]));
+                if(videoIndex == videoIds.length - 1) {
+                    videoIndex = -1;
+                }
                 handler.postDelayed(task, timeInterval);
             }
         });
+        /*final VideoView test = new VideoView(context);
+        Log.i("test", "before seturi");
+        test.setVideoURI(Uri.parse("android.resource://" + context.getPackageName() + "/" + videoIds[0]));
+        test.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                test.start();
+            }
+        });
+        test.setX(500);
+        test.setY(500);
+        test.setLayoutParams(new FrameLayout.LayoutParams(470, 310));
+        mainLayout.addView(test);
+        Log.i("test", "after seturi\r\nbefore start");
+        test.start();*/
+        Log.i("test", "after start");
         videoView.setVideoURI(Uri.parse("android.resource://" + context.getPackageName() + "/" + videoIds[0]));
         videoView.setLayoutParams(new FrameLayout.LayoutParams(470, 310));
-        videoView.setVisibility(View.INVISIBLE);
+        //videoView.setVisibility(View.INVISIBLE);
+        videoView.setAlpha(0);
         videoView.setX(50);
         videoView.setY(100);
-        mainLayout.addView(videoView);
+        //mainLayout.addView(videoView);
     }
 }
