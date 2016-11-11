@@ -33,7 +33,10 @@ public class AnimatorService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        countDownTask.cancel();
+        if(intent == null) {
+		return super.onStartCommand(intent, flags, startId);
+	}
+	countDownTask.cancel();
         if(frameLayout != null) {
             WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
             windowManager.removeViewImmediate(frameLayout);
